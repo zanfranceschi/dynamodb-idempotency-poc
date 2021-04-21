@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: dynamodb.idempotency.poc
+testFramework: junit
+sourceLanguage: java
+buildTool: gradle
+features: [app-name, aws-v2-sdk, gradle, http-client, java, java-application, junit, logback, netty-server, readme, shade, yaml]
