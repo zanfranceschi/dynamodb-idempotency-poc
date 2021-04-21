@@ -1,6 +1,5 @@
 package dynamodb.idempotency.poc;
 
-import io.micronaut.aws.sdk.v2.service.dynamodb.DynamoDbClientFactory;
 import io.micronaut.context.event.StartupEvent;
 import io.micronaut.runtime.event.annotation.EventListener;
 import org.slf4j.Logger;
@@ -10,12 +9,8 @@ import javax.inject.Singleton;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 import software.amazon.awssdk.services.dynamodb.model.*;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -29,6 +24,8 @@ public class Consolidador {
 
     public Consolidador(DynamoDbClientBuilder dynamoDbClientBuilder) {
         dynamoDbClient = dynamoDbClientBuilder
+                // Usar o DynamoDB localmente
+                // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html
                 .endpointOverride(URI.create("http://localhost:8000"))
                 .build();
         ListTablesResponse response = dynamoDbClient.listTables();
