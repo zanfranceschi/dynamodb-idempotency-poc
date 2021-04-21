@@ -2,4 +2,4 @@
 
 Aplicação teste para testar idempotência do DynamoDB usando PutItem :)
 
-_(I don't speak Java fluently -- forgive me for my convention mistakes)_
+_(I don't speak Java fluently -- forgive me for my mistakes)_
