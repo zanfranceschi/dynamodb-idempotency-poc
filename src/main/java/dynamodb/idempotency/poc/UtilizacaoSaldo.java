@@ -24,4 +24,12 @@ public class UtilizacaoSaldo {
     public int hashCode() {
         return Objects.hash(transacaoId, cliente, data, valorUtilizado);
     }
+
+    @Override
+    public String toString() {
+        return  "transacaoId='" + transacaoId + '\'' +
+                ", cliente='" + cliente + '\'' +
+                ", data='" + data + '\'' +
+                ", valorUtilizado='" + valorUtilizado + '\'';
+    }
 }

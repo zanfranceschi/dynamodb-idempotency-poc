@@ -56,8 +56,8 @@ public class Consolidador {
 
             // Arquivo posicional
             String transacaoId = linha.substring(0, 3).trim();
-            String data = linha.substring(3, 10).trim();
-            String cliente = linha.substring(11, 25).trim();
+            String data = linha.substring(3, 11).trim();
+            String cliente = linha.substring(11, 26).trim();
             String saldoUtilizado = linha.substring(26, 30).trim();
 
             // Instancia o objeto para poder obter o hashCode
@@ -88,12 +88,12 @@ public class Consolidador {
                                 .build());
 
                 if (response.attributes().size() == 0) {
-                    logger.info("registro criado: " + linha);
+                    logger.info("registro criado: " + utilizacaoSaldo);
                 } else {
-                    logger.info("registro atualziado: " + linha);
+                    logger.info("registro atualziado: " + utilizacaoSaldo);
                 }
             } catch (ConditionalCheckFailedException cex) {
-                logger.info("registro idêntico existente: ignorado!: " + linha);
+                logger.info("registro idêntico existente: ignorado!: " + utilizacaoSaldo);
             }
         }
     }
