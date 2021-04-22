@@ -52,8 +52,6 @@ public class Consolidador {
 
         while (sc.hasNextLine()) {
 
-            logger.info(gerarLinhaMock());
-
             String linha = sc.nextLine();
 
             // Arquivo posicional
@@ -98,13 +96,5 @@ public class Consolidador {
                 logger.info("registro idêntico existente: ignorado!: " + linha);
             }
         }
-    }
-
-    public static String gerarLinhaMock() {
-        Random rand = new Random();
-        String transacaoId = String.format("%03d", rand.nextInt(999));
-        String data = String.format("%08d", rand.nextInt(99999999));
-
-        return transacaoId + " " + data;
     }
 }
