@@ -29,6 +29,7 @@ dependencies {
 
     implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
     implementation("software.amazon.awssdk:dynamodb")
+    implementation("software.amazon.awssdk:s3")
 
     implementation("javax.annotation:javax.annotation-api")
     compileOnly("org.projectlombok:lombok")

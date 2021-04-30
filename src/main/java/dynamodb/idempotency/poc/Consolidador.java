@@ -6,12 +6,23 @@ import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.*;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import javax.inject.Singleton;
 
@@ -21,6 +32,7 @@ public class Consolidador {
     private static final Logger logger = LoggerFactory.getLogger(Consolidador.class);
 
     private DynamoDbClient dynamoDbClient;
+    private S3Client s3Client;
 
     public Consolidador() {
         /*
@@ -39,11 +51,30 @@ public class Consolidador {
                 // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html
                 .endpointOverride(URI.create("http://localhost:8000"))
                 .build();
+
+        s3Client = S3Client.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(ProfileCredentialsProvider.create("zanfranceschi"))
+                .build();
     }
 
     @SneakyThrows
     @EventListener
     public void iniciar(StartupEvent e) {
+
+        GetObjectRequest s3Request =GetObjectRequest.builder()
+                .key("saldos.txt")
+                .bucket("zanfranceschi")
+                .build();
+
+        ResponseInputStream<GetObjectResponse> s3responseIS = s3Client.getObject(s3Request);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(s3responseIS));
+
+        String linhaS3 = null;
+
+        while ((linhaS3 = reader.readLine()) != null) {
+            logger.info("linha: " + linhaS3);
+        }
 
         String arquivoSaldosCaminho = getClass().getClassLoader().getResource("saldos.txt").getPath();
         FileInputStream fis = new FileInputStream(arquivoSaldosCaminho);
