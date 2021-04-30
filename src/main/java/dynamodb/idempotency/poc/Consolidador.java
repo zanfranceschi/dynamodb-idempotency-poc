@@ -62,7 +62,7 @@ public class Consolidador {
     @EventListener
     public void iniciar(StartupEvent e) {
 
-        GetObjectRequest s3Request =GetObjectRequest.builder()
+        GetObjectRequest s3Request = GetObjectRequest.builder()
                 .key("saldos.txt")
                 .bucket("zanfranceschi")
                 .build();
