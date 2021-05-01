@@ -82,6 +82,8 @@ public class Consolidador {
 
             if (linha.length() != tamanhoLinha) {
                 // já que temos uma margem de segurança para a linha inicial, podemos descartar linhas iniciais incompletas
+                // as finais não precisamos de cuidado já que o consolidador anterior vai se esforçar :)
+                // se for o último consolidador, a última linha virá integralmente no range :)
                 logger.info(String.format("linha '%s' ignorada -- contém %s caracteres", linha, linha.length()));
                 continue;
             }
