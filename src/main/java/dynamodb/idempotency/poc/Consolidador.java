@@ -1,19 +1,13 @@
 package dynamodb.idempotency.poc;
 
-import io.micronaut.context.event.StartupEvent;
-import io.micronaut.runtime.event.annotation.EventListener;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -53,37 +47,46 @@ public class Consolidador {
                 .build();
 
         s3Client = S3Client.builder()
-                .region(Region.US_EAST_1)
+                .region(Region.SA_EAST_1)
                 .credentialsProvider(ProfileCredentialsProvider.create("zanfranceschi"))
                 .build();
     }
 
     @SneakyThrows
-    @EventListener
-    public void iniciar(StartupEvent e) {
+    public void iniciar() {
+
+        // mensagem recebida do orquestrador
+        int requestBytesInicioSolicitado = 2000;
+        int requestBytesFimSolicitado = 5000;
+
+        // lógica para garantir que a primeira linha será lida integralmente
+        int bytesMargemSegurançaInicio = 30;
+        int requestBytesInicioUsado = requestBytesInicioSolicitado - bytesMargemSegurançaInicio >= 0 ? requestBytesInicioSolicitado - bytesMargemSegurançaInicio : 0;
 
         GetObjectRequest s3Request = GetObjectRequest.builder()
                 .key("saldos.txt")
                 .bucket("zanfranceschi")
+                .range(String.format("bytes=%s-%s", requestBytesInicioUsado, requestBytesFimSolicitado))
                 .build();
 
         ResponseInputStream<GetObjectResponse> s3responseIS = s3Client.getObject(s3Request);
+
+        logger.debug(String.format("lendo range %s", s3responseIS.response().contentRange()));
+
         BufferedReader reader = new BufferedReader(new InputStreamReader(s3responseIS));
 
-        String linhaS3 = null;
+        String linha = null;
+        int tamanhoLinha = 30;
 
-        while ((linhaS3 = reader.readLine()) != null) {
-            logger.info("linha: " + linhaS3);
-        }
+        while ((linha = reader.readLine()) != null) {
 
-        String arquivoSaldosCaminho = getClass().getClassLoader().getResource("saldos.txt").getPath();
-        FileInputStream fis = new FileInputStream(arquivoSaldosCaminho);
+            if (linha.length() != tamanhoLinha) {
+                // já que temos uma margem de segurança para a linha inicial, podemos descartar linhas iniciais incompletas
+                logger.info(String.format("linha '%s' ignorada -- contém %s caracteres", linha, linha.length()));
+                continue;
+            }
 
-        Scanner sc = new Scanner(fis);
-
-        while (sc.hasNextLine()) {
-
-            String linha = sc.nextLine();
+            logger.debug(String.format("linha '%s' será processada", linha));
 
             // Arquivo posicional
             String transacaoId = linha.substring(0, 3).trim();
@@ -119,13 +122,23 @@ public class Consolidador {
                                 .build());
 
                 if (response.attributes().size() == 0) {
-                    logger.info("registro criado: " + utilizacaoSaldo);
+                    logger.debug("registro criado: " + utilizacaoSaldo);
                 } else {
-                    logger.info("registro atualziado: " + utilizacaoSaldo);
+                    logger.debug("registro atualziado: " + utilizacaoSaldo);
                 }
             } catch (ConditionalCheckFailedException cex) {
-                logger.info("registro idêntico existente: ignorado!: " + utilizacaoSaldo);
+                logger.debug("registro idêntico existente: ignorado!: " + utilizacaoSaldo);
             }
         }
+
+        /*
+        String arquivoSaldosCaminho = getClass().getClassLoader().getResource("saldos.txt").getPath();
+        FileInputStream fis = new FileInputStream(arquivoSaldosCaminho);
+        BufferedReader readerLocal = new BufferedReader(new InputStreamReader(fis));
+        String linhaLocal = null;
+        while ((linhaLocal = readerLocal.readLine()) != null) {
+
+        }
+        */
     }
 }

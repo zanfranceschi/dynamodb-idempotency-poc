@@ -34,6 +34,12 @@ dependencies {
     implementation("javax.annotation:javax.annotation-api")
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("ch.qos.logback:logback-classic")
+
+
+    annotationProcessor("info.picocli:picocli-codegen")
+    implementation("info.picocli:picocli")
+    implementation("io.micronaut.picocli:micronaut-picocli")
+    testImplementation("io.micronaut:micronaut-http-client")
 }
 
 
