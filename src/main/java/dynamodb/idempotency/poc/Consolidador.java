@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.*;
@@ -55,12 +56,28 @@ public class Consolidador {
     @SneakyThrows
     public void iniciar() {
 
+        /*
+        String arquivoTesteCaminho = getClass().getClassLoader().getResource("teste").getPath();
+        FileInputStream fis = new FileInputStream(arquivoTesteCaminho);
+        InputStreamReader isr = new InputStreamReader(fis);
+        logger.debug(String.format("encoding para arquivo 'teste' é %s", isr.getEncoding()));
+        BufferedReader readerLocal = new BufferedReader(isr);
+        int c;
+        while ((c = readerLocal.read()) != -1) {
+            logger.debug(String.format("char: %s (%d bytes)", (char)c, Character.toString((char)c).getBytes().length));
+        }
+        */
+
+        // comprimento das linhas do arquivo
+        int comprimentoLinha = 30;
+
         // mensagem recebida do orquestrador
-        int requestBytesInicioSolicitado = 2000;
-        int requestBytesFimSolicitado = 5000;
+        int requestBytesInicioSolicitado = 62;
+        int requestBytesFimSolicitado = 390;
 
         // lógica para garantir que a primeira linha será lida integralmente
-        int bytesMargemSegurançaInicio = 30;
+        // "* 2" é o exagero pensando que tudo possa ser no máximo double-byte (UTF8 possui caracteres de até 4 bytes) e "+ 1" é a quebra da linha
+        int bytesMargemSegurançaInicio = (comprimentoLinha * 2) + 1;
         int requestBytesInicioUsado = requestBytesInicioSolicitado - bytesMargemSegurançaInicio >= 0 ? requestBytesInicioSolicitado - bytesMargemSegurançaInicio : 0;
 
         GetObjectRequest s3Request = GetObjectRequest.builder()
@@ -76,11 +93,11 @@ public class Consolidador {
         BufferedReader reader = new BufferedReader(new InputStreamReader(s3responseIS));
 
         String linha = null;
-        int tamanhoLinha = 30;
+
 
         while ((linha = reader.readLine()) != null) {
 
-            if (linha.length() != tamanhoLinha) {
+            if (linha.length() != comprimentoLinha) {
                 // já que temos uma margem de segurança para a linha inicial, podemos descartar linhas iniciais incompletas
                 // as finais não precisamos de cuidado já que o consolidador anterior vai se esforçar :)
                 // se for o último consolidador, a última linha virá integralmente no range :)
@@ -132,15 +149,5 @@ public class Consolidador {
                 logger.debug("registro idêntico existente: ignorado!: " + utilizacaoSaldo);
             }
         }
-
-        /*
-        String arquivoSaldosCaminho = getClass().getClassLoader().getResource("saldos.txt").getPath();
-        FileInputStream fis = new FileInputStream(arquivoSaldosCaminho);
-        BufferedReader readerLocal = new BufferedReader(new InputStreamReader(fis));
-        String linhaLocal = null;
-        while ((linhaLocal = readerLocal.readLine()) != null) {
-
-        }
-        */
     }
 }
